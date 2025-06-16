@@ -1,5 +1,6 @@
 package ru.beeline.referenceservice.dto;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,8 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequestDTO {
+public class PasswordDTO {
 
-    private String login;
-    private Boolean admin;
+    private String password;
 }

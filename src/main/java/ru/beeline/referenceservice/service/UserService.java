@@ -1,14 +1,20 @@
 package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
+import ru.beeline.referenceservice.context.RequestContext;
 import ru.beeline.referenceservice.domain.UserEntity;
+import ru.beeline.referenceservice.dto.PasswordDTO;
 import ru.beeline.referenceservice.dto.UserRequestDTO;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
+import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.repository.UserRepository;
+import ru.beeline.referenceservice.util.PasswordUtil;
 
+import javax.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -20,6 +26,7 @@ public class UserService {
     }
 
     public void createUser(UserRequestDTO userRequest) {
+        loginValidate(userRequest.getLogin());
         if (userRepository.findByLogin(userRequest.getLogin()).isPresent()) {
             throw new LoginAlreadyExistsException("Логин уже занят");
         }
@@ -29,6 +36,18 @@ public class UserService {
                 .password(hashedPassword)
                 .admin(userRequest.getAdmin())
                 .build());
+    }
+
+    private void loginValidate(String login) {
+        if (login == null || login.isEmpty()) {
+            throw new ValidationException("Логин не должен быть пустым");
+        }
+        if (login.contains(" ")) {
+            throw new ValidationException("Логин не должен содержать пробелов");
+        }
+        if (!login.matches("^[a-zA-Z0-9]{1,255}$")) {
+            throw new ValidationException("Логин должен содержать только латинские буквы и цифры, максимум 255 символов");
+        }
     }
 
     private String hashSHA256(String input) {
@@ -47,6 +66,34 @@ public class UserService {
             sb.append(String.format("%02x", b));
         }
         return sb.toString();
+    }
+
+    public void passwordChange(Integer id, PasswordDTO passwordDTO) {
+        validatePassword(passwordDTO.getPassword());
+        UserEntity currentUser = RequestContext.getCurrentUser();
+        Optional<UserEntity> userOpt = userRepository.findByIdAndLogin(id, currentUser.getLogin());
+        if (userOpt.isEmpty()) {
+            throw new EntityNotFoundException("Пользователь не найден или нет доступа");
+        }
+        UserEntity user = userOpt.get();
+        String newPasswordHash = PasswordUtil.sha256(passwordDTO.getPassword());
+        user.setPassword(newPasswordHash);
+        userRepository.save(user);
+    }
+
+    private void validatePassword(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new ValidationException("Пароль не должен быть пустым");
+        }
+        if (password.length() > 255) {
+            throw new ValidationException("Длина пароля должна быть от 1 до 255 символов");
+        }
+        if (password.contains(" ")) {
+            throw new ValidationException("Пароль не должен содержать пробелов");
+        }
+        if (!password.matches("^[\\p{ASCII}]+$")) {
+            throw new ValidationException("Пароль должен содержать только латинские буквы, цифры и спецсимволы");
+        }
     }
 
     public String getUser(UserRequestDTO userRequest) {

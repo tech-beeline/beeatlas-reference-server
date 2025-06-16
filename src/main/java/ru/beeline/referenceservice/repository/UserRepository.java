@@ -5,9 +5,11 @@ import ru.beeline.referenceservice.domain.UserEntity;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
+public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     Optional<UserEntity> findByLogin(String login);
 
     Optional<UserEntity> findByLoginAndPassword(String login, String password);
+
+    Optional<UserEntity> findByIdAndLogin(Integer id, String login);
 }

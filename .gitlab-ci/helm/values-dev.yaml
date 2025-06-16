@@ -2,6 +2,10 @@ env:
   SPRING_PROFILES_ACTIVE: dev
 
 
+podAnnotations:
+  vault.security.banzaicloud.io/vault-addr: "https://vault-test.vimpelcom.ru/"
+
+
 ingress:
   annotations:
     nginx.ingress.kubernetes.io/cors-allow-headers: Content-Type, authorization, Content-Disposition

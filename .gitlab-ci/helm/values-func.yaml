@@ -2,6 +2,10 @@ env:
   JAVACMD: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8090"
   SPRING_PROFILES_ACTIVE: func
 
+podAnnotations:
+  vault.security.banzaicloud.io/vault-addr: "https://vault-test.vimpelcom.ru/"
+
+
 
 ingress:
   annotations:

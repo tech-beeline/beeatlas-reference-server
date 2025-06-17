@@ -68,7 +68,7 @@ public class AuthFilter extends OncePerRequestFilter {
         UserEntity user = userOpt.get();
 
         boolean isGet = HttpMethod.GET.matches(request.getMethod());
-        boolean isPasswordChangeEndpoint = isPasswordChange(request); // реализация позже
+        boolean isPasswordChangeEndpoint = isPasswordChange(request); // реализовано , проверить.
         if (!isGet && !isPasswordChangeEndpoint && !user.getAdmin()) {
             sendForbidden(response);
             return;

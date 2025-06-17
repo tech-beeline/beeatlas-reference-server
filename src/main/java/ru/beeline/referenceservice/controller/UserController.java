@@ -40,8 +40,8 @@ public class UserController {
         return userService.getUser(userRequest);
     }
 
-    @PostMapping("/pp")
-    public String User() {
+    @PostMapping("/test")
+    public String user() {
         return userService.User();                        // для проверки доступа
     }
 }

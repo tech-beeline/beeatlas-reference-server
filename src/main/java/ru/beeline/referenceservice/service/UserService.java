@@ -1,9 +1,10 @@
 package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
-import ru.beeline.referenceservice.domain.UserEntity;
+import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.dto.UserRequestDTO;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
+import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.repository.UserRepository;
 
 import java.nio.charset.StandardCharsets;
@@ -20,15 +21,28 @@ public class UserService {
     }
 
     public void createUser(UserRequestDTO userRequest) {
+        loginValidate(userRequest.getLogin());
         if (userRepository.findByLogin(userRequest.getLogin()).isPresent()) {
             throw new LoginAlreadyExistsException("Логин уже занят");
         }
         String hashedPassword = hashSHA256(userRequest.getLogin());
-        userRepository.save(UserEntity.builder()
+        userRepository.save(User.builder()
                 .login(userRequest.getLogin())
                 .password(hashedPassword)
                 .admin(userRequest.getAdmin())
                 .build());
+    }
+
+    private void loginValidate(String login) {
+        if (login == null || login.isEmpty()) {
+            throw new ValidationException("Логин не должен быть пустым");
+        }
+        if (login.contains(" ")) {
+            throw new ValidationException("Логин не должен содержать пробелов");
+        }
+        if (!login.matches("^[a-zA-Z0-9]{1,255}$")) {
+            throw new ValidationException("Логин должен содержать только латинские буквы и цифры, максимум 255 символов");
+        }
     }
 
     private String hashSHA256(String input) {

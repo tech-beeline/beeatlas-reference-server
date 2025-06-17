@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
+import ru.beeline.referenceservice.exception.ValidationException;
 
 @ControllerAdvice
 @Slf4j
@@ -18,6 +19,15 @@ public class CustomExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .header("content-type", MediaType.APPLICATION_JSON_VALUE)
-                .body("400 BAD_REQUEST : " + e.getMessage());
+                .body("400 BAD_REQUEST: " + e.getMessage());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handleException(ValidationException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .header("content-type", MediaType.APPLICATION_JSON_VALUE)
+                .body("400 BAD_REQUEST: " + e.getMessage());
     }
 }

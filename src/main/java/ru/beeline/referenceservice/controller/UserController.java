@@ -1,5 +1,6 @@
 package ru.beeline.referenceservice.controller;
 
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +20,19 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity createUser(@Valid @RequestBody UserRequestDTO userRequest) {
+    @ApiOperation(value = "Создание пользователя")
+    public ResponseEntity createUser(@RequestBody UserRequestDTO userRequest) {
         userService.createUser(userRequest);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/get_test")
     public String getUser(@Valid @RequestBody UserRequestDTO userRequest) {    // для проверки доступа
         return userService.getUser(userRequest);
     }
 
-    @PostMapping("/pp")
-    public String User() {
+    @PostMapping("/post_test")
+    public String user() {
         return userService.User();                        // для проверки доступа
     }
 }

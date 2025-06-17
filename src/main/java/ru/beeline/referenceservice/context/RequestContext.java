@@ -1,16 +1,16 @@
 package ru.beeline.referenceservice.context;
 
-import ru.beeline.referenceservice.domain.UserEntity;
+import ru.beeline.referenceservice.domain.User;
 
 public class RequestContext {
 
-    private static final ThreadLocal<UserEntity> currentUser = new ThreadLocal<>();
+    private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
 
-    public static void setCurrentUser(UserEntity user) {
+    public static void setCurrentUser(User user) {
         currentUser.set(user);
     }
 
-    public static UserEntity getCurrentUser() {
+    public static User getCurrentUser() {
         return currentUser.get();
     }
 

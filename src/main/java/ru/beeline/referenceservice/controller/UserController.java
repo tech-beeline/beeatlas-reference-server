@@ -35,12 +35,12 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/get_test")
     public String getUser(@Valid @RequestBody UserRequestDTO userRequest) {    // для проверки доступа
         return userService.getUser(userRequest);
     }
 
-    @PostMapping("/test")
+    @PostMapping("/post_test")
     public String user() {
         return userService.User();                        // для проверки доступа
     }

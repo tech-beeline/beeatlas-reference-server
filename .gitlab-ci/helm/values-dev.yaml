@@ -1,5 +1,8 @@
 env:
   SPRING_PROFILES_ACTIVE: dev
+  REFS_DB_URL:  "jdbc:postgresql://ref-db.database-dev-pg.cloud.vimpelcom.ru:5432/refs"
+  REFS_DB_USER: "vault:eafdmmart/data/dev/fdm#refs.db.user"
+  REFS_DB_PASS: "vault:eafdmmart/data/dev/fdm#refs.db.pass"
 
 
 podAnnotations:

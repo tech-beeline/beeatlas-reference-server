@@ -1,15 +1,13 @@
 package ru.beeline.referenceservice.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.beeline.referenceservice.domain.UserEntity;
+import ru.beeline.referenceservice.domain.User;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
-    Optional<UserEntity> findByLogin(String login);
+    Optional<User> findByLogin(String login);
 
-    Optional<UserEntity> findByLoginAndPassword(String login, String password);
-
-    Optional<UserEntity> findByIdAndLogin(Integer id, String login);
+    Optional<User> findByLoginAndPassword(String login, String password);
 }

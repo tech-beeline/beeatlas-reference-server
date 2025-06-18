@@ -1,6 +1,7 @@
 package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
+import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.context.RequestContext;
 import ru.beeline.referenceservice.domain.UserEntity;
 import ru.beeline.referenceservice.dto.PasswordDTO;
@@ -31,7 +32,7 @@ public class UserService {
             throw new LoginAlreadyExistsException("Логин уже занят");
         }
         String hashedPassword = hashSHA256(userRequest.getLogin());
-        userRepository.save(UserEntity.builder()
+        userRepository.save(User.builder()
                 .login(userRequest.getLogin())
                 .password(hashedPassword)
                 .admin(userRequest.getAdmin())

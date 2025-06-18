@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
 import ru.beeline.referenceservice.exception.ValidationException;
+import javax.persistence.EntityNotFoundException;
 
 @ControllerAdvice
 @Slf4j
@@ -29,5 +30,14 @@ public class CustomExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .header("content-type", MediaType.APPLICATION_JSON_VALUE)
                 .body("400 BAD_REQUEST: " + e.getMessage());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Object> handleException(EntityNotFoundException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .header("content-type", MediaType.APPLICATION_JSON_VALUE)
+                .body("404 NOT_FOUND: " + e.getMessage());
     }
 }

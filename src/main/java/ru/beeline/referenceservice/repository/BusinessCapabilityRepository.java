@@ -11,7 +11,7 @@ import ru.beeline.referenceservice.domain.BusinessCapability;
 import java.util.List;
 
 @Repository
-public interface BusinessCapabilityRepository extends JpaRepository<BusinessCapability, Long> {
+public interface BusinessCapabilityRepository extends JpaRepository<BusinessCapability, Integer> {
 
     @Query(
             value = "SELECT c FROM BusinessCapability c LEFT JOIN FETCH c.parentEntity p" +

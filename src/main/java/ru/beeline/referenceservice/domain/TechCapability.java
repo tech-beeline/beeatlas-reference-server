@@ -40,7 +40,7 @@ public class TechCapability {
     private String status;
 
     @OneToMany
-    @JoinColumn(name = "id_child")
+    @JoinColumn(name = "child_id")
     private List<TechCapabilityRelations> parents;
 
     @ManyToOne(fetch = FetchType.LAZY)

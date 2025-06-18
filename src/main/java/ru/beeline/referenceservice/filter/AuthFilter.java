@@ -31,15 +31,15 @@ public class AuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         Optional<User> userOpt = authenticate(request);
-        if (userOpt.isEmpty()) {
-            sendUnauthorized(response);
+        if (userOpt.isEmpty() || !isAuthorized(request, userOpt.get())) {
+            if (userOpt.isEmpty()) {
+                sendUnauthorized(response);
+            } else {
+                sendForbidden(response);
+            }
             return;
         }
         User user = userOpt.get();
-        if (!isAuthorized(request, user)) {
-            sendForbidden(response);
-            return;
-        }
         RequestContext.setCurrentUser(user);
         try {
             filterChain.doFilter(request, response);
@@ -86,17 +86,18 @@ public class AuthFilter extends OncePerRequestFilter {
     }
 
     private void sendForbidden(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"message\": \"Forbidden\"}");
+        sendError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden");
     }
 
     private void sendUnauthorized(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Not authorized");
+    }
+
+    private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"message\": \"Not authorized\"}");
+        response.getWriter().write("{\"message\": \"" + message + "\"}");
     }
 }
 

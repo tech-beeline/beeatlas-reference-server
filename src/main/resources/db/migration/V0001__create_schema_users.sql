@@ -27,4 +27,4 @@ RAISE NOTICE 'Таблица users.user создана';
 ELSE
         RAISE NOTICE 'Таблица users.user уже существует';
 END IF;
-END $$;
+END $$ LANGUAGE plpgsql;

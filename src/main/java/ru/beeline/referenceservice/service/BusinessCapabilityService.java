@@ -16,10 +16,11 @@ import java.util.List;
 public class BusinessCapabilityService {
 
     private final BusinessCapabilityRepository businessCapabilityRepository;
-
     private final BusinessCapabilityMapper businessCapabilityMapper;
 
-    public BusinessCapabilityService(BusinessCapabilityRepository businessCapabilityRepository, BusinessCapabilityMapper businessCapabilityMapper) {
+    public BusinessCapabilityService(BusinessCapabilityRepository businessCapabilityRepository,
+                                     BusinessCapabilityMapper businessCapabilityMapper
+    ) {
         this.businessCapabilityRepository = businessCapabilityRepository;
         this.businessCapabilityMapper = businessCapabilityMapper;
     }

@@ -8,4 +8,4 @@ RAISE NOTICE 'Схема capability создана';
 ELSE
         RAISE NOTICE 'Схема capability уже существует';
 END IF;
-END $$;
+END $$ LANGUAGE plpgsql;

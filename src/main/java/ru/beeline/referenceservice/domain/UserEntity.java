@@ -6,10 +6,10 @@ import javax.persistence.*;
 
 
 @Data
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Table(name = "user", schema = "users")
 public class UserEntity {
 

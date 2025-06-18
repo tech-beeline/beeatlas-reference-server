@@ -9,18 +9,17 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 @Data
 @Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "business_capability", schema = "capability")
-public class BusinessCapability {
+@Table(name = "tech_capability", schema = "capability")
+public class TechCapability {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "business_capability_id_generator")
-    @SequenceGenerator(name = "business_capability_id_generator", sequenceName = "BC_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tech_capability_id_generator")
+    @SequenceGenerator(name = "tech_capability_id_generator", sequenceName = "tech_capability_id_seq", allocationSize = 1)
     private Integer id;
 
     private String code;
@@ -40,17 +39,11 @@ public class BusinessCapability {
 
     private String status;
 
-    @Column(name = "parent_id")
-    private Integer parentId;
-
-    @Column(name = "is_domain")
-    private Boolean isDomain;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
-    private BusinessCapability parentEntity;
-
     @OneToMany
-    @JoinColumn(name = "id_parent")
-    private List<TechCapabilityRelations> children;
+    @JoinColumn(name = "id_child")
+    private List<TechCapabilityRelations> parents;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responsibility_product_id")
+    private Product responsibilityProduct;
 }

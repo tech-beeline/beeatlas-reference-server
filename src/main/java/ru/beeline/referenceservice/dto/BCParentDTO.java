@@ -13,21 +13,19 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BusinessCapabilityDTO {
+public class BCParentDTO {
 
     private Integer id;
     private String code;
     private String name;
     private String description;
+    private String status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime createdDate;
     @JsonProperty("updatedDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime lastModifiedDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    private LocalDateTime deletedDate;
     @JsonProperty("isDomain")
     private boolean isDomain;
     private boolean hasChildren;
-    private BCParentDTO parent;
 }

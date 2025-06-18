@@ -2,10 +2,15 @@ package ru.beeline.referenceservice.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.beeline.referenceservice.domain.BusinessCapability;
+import ru.beeline.referenceservice.domain.TechCapabilityRelations;
+import ru.beeline.referenceservice.dto.BCParentDTO;
 import ru.beeline.referenceservice.dto.BusinessCapabilityDTO;
 import ru.beeline.referenceservice.repository.BusinessCapabilityRepository;
+import ru.beeline.referenceservice.repository.TechCapabilityRelationsRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,13 +19,17 @@ public class BusinessCapabilityMapper {
 
     private final BusinessCapabilityRepository businessCapabilityRepository;
 
-    public BusinessCapabilityMapper(BusinessCapabilityRepository businessCapabilityRepository) {
+    private final TechCapabilityRelationsRepository techCapabilityRelationsRepository;
+
+    public BusinessCapabilityMapper(BusinessCapabilityRepository businessCapabilityRepository,
+                                    TechCapabilityRelationsRepository techCapabilityRelationsRepository) {
         this.businessCapabilityRepository = businessCapabilityRepository;
+        this.techCapabilityRelationsRepository = techCapabilityRelationsRepository;
     }
 
     public List<BusinessCapabilityDTO> convertToBusinessCapabilityShortDTOList(
             List<BusinessCapability> businessCapabilities, String findBy) {
-        List<Long> parentIds;
+        List<Integer> parentIds;
         if ("CORE".equals(findBy)) {
             parentIds = businessCapabilities.stream()
                     .filter(bc -> bc.getParentId() == null)
@@ -31,13 +40,31 @@ public class BusinessCapabilityMapper {
                     .map(BusinessCapability::getId)
                     .collect(Collectors.toList());
         }
-
+        List<Integer> activeBcIds = findActiveBusinessCapabilityIds(parentIds);
+        List<Integer> activeTcIds = findActiveTechCapabilities(parentIds);
         return businessCapabilities.stream()
-                .map(this::convert)
+                .map(bc -> {
+                    boolean hasActiveChildren = activeBcIds.contains(bc.getId()) || activeTcIds.contains(bc.getId());
+                    return convert(bc, hasActiveChildren);
+                })
                 .collect(Collectors.toList());
     }
 
-    public BusinessCapabilityDTO convert(BusinessCapability businessCapability) {
+    private List<Integer> findActiveBusinessCapabilityIds(List<Integer> parentIds) {
+        if (parentIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return businessCapabilityRepository.findActiveBusinessCapabilities(parentIds);
+    }
+
+    private List<Integer> findActiveTechCapabilities(List<Integer> businessCapabilityIds) {
+        if (businessCapabilityIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return techCapabilityRelationsRepository.findActiveTechCapabilities(businessCapabilityIds);
+    }
+
+    public BusinessCapabilityDTO convert(BusinessCapability businessCapability, boolean hasKids) {
         return BusinessCapabilityDTO.builder()
                 .id(businessCapability.getId())
                 .code(businessCapability.getCode())
@@ -46,8 +73,37 @@ public class BusinessCapabilityMapper {
                 .createdDate(businessCapability.getCreatedDate())
                 .lastModifiedDate(businessCapability.getLastModifiedDate())
                 .deletedDate(businessCapability.getDeletedDate())
-                .isDomain(businessCapability.isDomain())
-                .parent(BCParentDTO.convert(businessCapability.getParentEntity()))
+                .isDomain(businessCapability.getIsDomain())
+                .hasChildren(hasKids)
+                .parent(convertToBCParentDTO(businessCapability.getParentEntity()))
+                .build();
+    }
+
+    public List<BCParentDTO> convertToBCParentDTOList(List<TechCapabilityRelations> relations) {
+        List<BCParentDTO> parents = new ArrayList<>();
+        for (TechCapabilityRelations relation : relations) {
+            BusinessCapability bc = relation.getBusinessCapability();
+            BCParentDTO dto = convertToBCParentDTO(bc);
+            parents.add(dto);
+        }
+        parents.sort(Comparator.comparing(BCParentDTO::getName));
+        return parents;
+    }
+
+    public BCParentDTO convertToBCParentDTO(BusinessCapability businessCapability) {
+        if (businessCapability == null) {
+            return null;
+        }
+        return BCParentDTO.builder()
+                .id(businessCapability.getId())
+                .code(businessCapability.getCode())
+                .name(businessCapability.getName())
+                .description(businessCapability.getDescription())
+                .status(businessCapability.getStatus())
+                .createdDate(businessCapability.getCreatedDate())
+                .lastModifiedDate(businessCapability.getLastModifiedDate())
+                .isDomain(businessCapability.getIsDomain())
+                .hasChildren(true)
                 .build();
     }
 }

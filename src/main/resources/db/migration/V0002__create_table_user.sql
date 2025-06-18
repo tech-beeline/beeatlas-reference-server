@@ -15,4 +15,4 @@ BEGIN
 ELSE
         RAISE NOTICE 'Пользователь admin уже существует';
 END IF;
-END $$;
+END $$ LANGUAGE plpgsql;

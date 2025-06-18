@@ -3,7 +3,6 @@ package ru.beeline.referenceservice.service;
 import org.springframework.stereotype.Service;
 import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.context.RequestContext;
-import ru.beeline.referenceservice.domain.UserEntity;
 import ru.beeline.referenceservice.dto.PasswordDTO;
 import ru.beeline.referenceservice.dto.UserRequestDTO;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
@@ -71,12 +70,12 @@ public class UserService {
 
     public void passwordChange(Integer id, PasswordDTO passwordDTO) {
         validatePassword(passwordDTO.getPassword());
-        UserEntity currentUser = RequestContext.getCurrentUser();
-        Optional<UserEntity> userOpt = userRepository.findByIdAndLogin(id, currentUser.getLogin());
+        User currentUser = RequestContext.getCurrentUser();
+        Optional<User> userOpt = userRepository.findByIdAndLogin(id, currentUser.getLogin());
         if (userOpt.isEmpty()) {
             throw new EntityNotFoundException("Пользователь не найден или нет доступа");
         }
-        UserEntity user = userOpt.get();
+        User user = userOpt.get();
         String newPasswordHash = PasswordUtil.sha256(passwordDTO.getPassword());
         user.setPassword(newPasswordHash);
         userRepository.save(user);

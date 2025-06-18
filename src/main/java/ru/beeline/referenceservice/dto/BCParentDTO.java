@@ -25,7 +25,6 @@ public class BCParentDTO {
     @JsonProperty("updatedDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime lastModifiedDate;
-    @JsonProperty("isDomain")
-    private boolean isDomain;
-    private boolean hasChildren;
+    private Boolean isDomain;
+    private Boolean hasChildren;
 }

@@ -26,8 +26,7 @@ public class BusinessCapabilityDTO {
     private LocalDateTime lastModifiedDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime deletedDate;
-    @JsonProperty("isDomain")
-    private boolean isDomain;
-    private boolean hasChildren;
+    private Boolean isDomain;
+    private Boolean hasChildren;
     private BCParentDTO parent;
 }

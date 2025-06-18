@@ -1,72 +1,43 @@
 package ru.beeline.referenceservice.helper.pagination;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import lombok.Data;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 import java.util.Optional;
 
-public class OffsetBasedPageRequest implements Pageable, Serializable {
+@Data
+public final class OffsetBasedPageRequest implements Pageable, Serializable {
 
     private static final long serialVersionUID = -25822477129613575L;
 
-    private int limit;
-    private int offset;
+    private final int limit;
+    private final int offset;
     private final Sort sort;
 
-    /**
-     * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
-     *
-     * @param offset zero-based offset.
-     * @param limit  the size of the elements to be returned.
-     * @param sort   can be {@literal null}.
-     */
     public OffsetBasedPageRequest(int offset, int limit, Sort sort) {
         if (offset < 0) {
             throw new IllegalArgumentException("Offset index must not be less than zero!");
         }
-
-        if (limit < 0) {
-            throw new IllegalArgumentException("Limit must not be less than one!");
+        if (limit <= 0) {
+            throw new IllegalArgumentException("Limit must be greater than zero!");
         }
-        this.limit = limit;
         this.offset = offset;
-        this.sort = sort;
+        this.limit = limit;
+        this.sort = (sort == null) ? Sort.unsorted() : sort;
     }
 
-    /**
-     * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
-     *
-     * @param offset     zero-based offset.
-     * @param limit      the size of the elements to be returned.
-     * @param direction  the direction of the {@link Sort} to be specified, can be {@literal null}.
-     * @param properties the properties to sort by, must not be {@literal null} or empty.
-     */
-    public OffsetBasedPageRequest(int offset, int limit, Sort.Direction direction, String... properties) {
-        this(offset, limit, Sort.by(direction, properties));
+    public static OffsetBasedPageRequest of(int offset, int limit, Sort.Direction direction, String... properties) {
+        return new OffsetBasedPageRequest(offset, limit, Sort.by(direction, properties));
     }
 
-    /**
-     * Creates a new {@link OffsetBasedPageRequest} with sort parameters applied.
-     *
-     * @param offset zero-based offset.
-     * @param limit  the size of the elements to be returned.
-     */
-    public OffsetBasedPageRequest(int offset, int limit) {
-        this(offset, limit, Sort.unsorted());
+    public static OffsetBasedPageRequest of(int offset, int limit, Sort sort) {
+        return new OffsetBasedPageRequest(offset, limit, sort);
     }
 
-    @Override
-    public boolean isPaged() {
-        return Pageable.super.isPaged();
-    }
-
-    @Override
-    public boolean isUnpaged() {
-        return Pageable.super.isUnpaged();
+    public static OffsetBasedPageRequest of(int offset, int limit) {
+        return new OffsetBasedPageRequest(offset, limit, Sort.unsorted());
     }
 
     @Override
@@ -90,19 +61,14 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
     }
 
     @Override
-    public Sort getSortOr(Sort sort) {
-        return Pageable.super.getSortOr(sort);
-    }
-
-    @Override
     public Pageable next() {
-        return new OffsetBasedPageRequest((int) (getOffset() + getPageSize()), getPageSize(), getSort());
+        return new OffsetBasedPageRequest(offset + limit, limit, sort);
     }
 
     public OffsetBasedPageRequest previous() {
-        return hasPrevious() ? new OffsetBasedPageRequest((int) (getOffset() - getPageSize()), getPageSize(), getSort()) : this;
+        int newOffset = Math.max(offset - limit, 0);
+        return new OffsetBasedPageRequest(newOffset, limit, sort);
     }
-
 
     @Override
     public Pageable previousOrFirst() {
@@ -111,54 +77,39 @@ public class OffsetBasedPageRequest implements Pageable, Serializable {
 
     @Override
     public Pageable first() {
-        return new OffsetBasedPageRequest(0, getPageSize(), getSort());
+        return new OffsetBasedPageRequest(0, limit, sort);
     }
 
     @Override
     public Pageable withPage(int pageNumber) {
-        return null;
+        if (pageNumber < 0) {
+            throw new IllegalArgumentException("Page index must not be less than zero!");
+        }
+        return new OffsetBasedPageRequest(pageNumber * limit, limit, sort);
     }
 
     @Override
     public boolean hasPrevious() {
-        return offset > limit;
+        return offset >= limit;
+    }
+
+    @Override
+    public boolean isPaged() {
+        return Pageable.super.isPaged();
+    }
+
+    @Override
+    public boolean isUnpaged() {
+        return Pageable.super.isUnpaged();
+    }
+
+    @Override
+    public Sort getSortOr(Sort sort) {
+        return Pageable.super.getSortOr(sort);
     }
 
     @Override
     public Optional<Pageable> toOptional() {
         return Pageable.super.toOptional();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-
-        if (!(o instanceof OffsetBasedPageRequest)) return false;
-
-        OffsetBasedPageRequest that = (OffsetBasedPageRequest) o;
-
-        return new EqualsBuilder()
-                .append(limit, that.limit)
-                .append(offset, that.offset)
-                .append(sort, that.sort)
-                .isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(limit)
-                .append(offset)
-                .append(sort)
-                .toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("limit", limit)
-                .append("offset", offset)
-                .append("sort", sort)
-                .toString();
     }
 }

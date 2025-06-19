@@ -95,7 +95,9 @@ public class BusinessCapabilityService {
     }
 
     private Integer getParentId(PutBusinessCapabilityDTO capability) {
-        if (capability == null || capability.getParent() == null) return null;
+        if (capability == null || capability.getParent() == null) {
+            return null;
+        }
         return businessCapabilityRepository.findByCode(capability.getParent()).map(BusinessCapability::getId).orElse(null);
     }
 

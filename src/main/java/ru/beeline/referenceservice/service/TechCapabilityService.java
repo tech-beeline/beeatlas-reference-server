@@ -33,4 +33,5 @@ public class TechCapabilityService {
         Page<TechCapability> techCapabilities = techCapabilityRepository.findCapabilities(pageable);
         return techCapabilityMapper.convert(techCapabilities.toList());
     }
+
 }

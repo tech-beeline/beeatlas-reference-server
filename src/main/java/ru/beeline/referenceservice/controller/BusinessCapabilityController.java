@@ -1,11 +1,11 @@
 package ru.beeline.referenceservice.controller;
 
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import ru.beeline.referenceservice.dto.BusinessCapabilityDTO;
+import ru.beeline.referenceservice.dto.PutBusinessCapabilityDTO;
 import ru.beeline.referenceservice.service.BusinessCapabilityService;
 
 import java.util.List;
@@ -26,5 +26,12 @@ public class BusinessCapabilityController {
                                                                @RequestParam(value = "findBy", required = false, defaultValue = "ALL") String findBy,
                                                                @RequestParam(value = "offset", required = false) Integer offset) {
         return businessCapabilityService.getCapabilities(limit, offset, findBy);
+    }
+
+    @PutMapping
+    @ApiOperation(value = "Создание/Обновление бизнес возможности")
+    public ResponseEntity putBusinessCapability(@RequestBody PutBusinessCapabilityDTO capability) {
+        businessCapabilityService.putCapability(capability);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-
 @Data
 @Entity
 @Builder
@@ -18,7 +17,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_generator")
-    @SequenceGenerator(name = "user_id_generator", sequenceName = "user_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "user_id_generator", sequenceName = "users.user_id_seq", allocationSize = 1)
     private Integer id;
 
     private String login;

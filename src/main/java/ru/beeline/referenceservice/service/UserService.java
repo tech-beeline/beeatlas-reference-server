@@ -1,6 +1,7 @@
 package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.context.RequestContext;
 import ru.beeline.referenceservice.dto.PasswordDTO;
@@ -17,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;

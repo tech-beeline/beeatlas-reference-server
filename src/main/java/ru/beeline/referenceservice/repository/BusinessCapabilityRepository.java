@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import ru.beeline.referenceservice.domain.BusinessCapability;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BusinessCapabilityRepository extends JpaRepository<BusinessCapability, Integer> {
@@ -31,4 +32,6 @@ public interface BusinessCapabilityRepository extends JpaRepository<BusinessCapa
     List<Integer> findActiveBusinessCapabilities(@Param("parentIds") List<Integer> parentIds);
 
     Page<BusinessCapability> findByIsDomainTrueAndDeletedDateIsNull(Pageable pageable);
+
+    Optional<BusinessCapability> findByCode(String code);
 }

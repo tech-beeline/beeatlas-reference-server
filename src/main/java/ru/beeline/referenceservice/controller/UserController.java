@@ -42,6 +42,6 @@ public class UserController {
 
     @PostMapping("/post_test")
     public String user() {
-        return userService.User();                        // для проверки доступа
+        return userService.User();                        // для проверки доступа, убрать после тестов
     }
 }

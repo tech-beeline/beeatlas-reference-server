@@ -5,6 +5,7 @@ import ru.beeline.referenceservice.domain.BusinessCapability;
 import ru.beeline.referenceservice.domain.TechCapabilityRelations;
 import ru.beeline.referenceservice.dto.BCParentDTO;
 import ru.beeline.referenceservice.dto.BusinessCapabilityDTO;
+import ru.beeline.referenceservice.dto.PutBusinessCapabilityDTO;
 import ru.beeline.referenceservice.repository.BusinessCapabilityRepository;
 import ru.beeline.referenceservice.repository.TechCapabilityRelationsRepository;
 
@@ -105,5 +106,24 @@ public class BusinessCapabilityMapper {
                 .isDomain(businessCapability.getIsDomain())
                 .hasChildren(true)
                 .build();
+    }
+
+    public PutBusinessCapabilityDTO convertToPutCapabilityDTO(BusinessCapability businessCapability) {
+        return PutBusinessCapabilityDTO.builder()
+                .code(businessCapability.getCode())
+                .name(businessCapability.getName())
+                .description(businessCapability.getDescription())
+                .status(businessCapability.getStatus())
+                .isDomain(businessCapability.getIsDomain())
+                .parent(getParentCode(businessCapability))
+                .build();
+    }
+
+    private String getParentCode(BusinessCapability capability) {
+        if (capability == null || capability.getParentId() == null)
+            return null;
+        return businessCapabilityRepository.findById(capability.getParentId())
+                .map(BusinessCapability::getCode)
+                .orElse(null);
     }
 }

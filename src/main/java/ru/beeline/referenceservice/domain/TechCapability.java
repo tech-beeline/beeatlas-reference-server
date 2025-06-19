@@ -19,7 +19,7 @@ public class TechCapability {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tech_capability_id_generator")
-    @SequenceGenerator(name = "tech_capability_id_generator", sequenceName = "tech_capability_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "tech_capability_id_generator", sequenceName = "capability.tech_capability_id_seq", allocationSize = 1)
     private Integer id;
 
     private String code;

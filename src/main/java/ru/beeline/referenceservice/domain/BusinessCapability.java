@@ -1,9 +1,6 @@
 package ru.beeline.referenceservice.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -11,6 +8,7 @@ import java.util.List;
 
 
 @Data
+@ToString(exclude = {"parentEntity", "children"})
 @Entity
 @Builder
 @AllArgsConstructor
@@ -20,7 +18,7 @@ public class BusinessCapability {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "business_capability_id_generator")
-    @SequenceGenerator(name = "business_capability_id_generator", sequenceName = "BC_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "business_capability_id_generator", sequenceName = "capability.business_capability_id_seq", allocationSize = 1)
     private Integer id;
 
     private String code;
@@ -51,6 +49,6 @@ public class BusinessCapability {
     private BusinessCapability parentEntity;
 
     @OneToMany
-    @JoinColumn(name = "id_parent")
+    @JoinColumn(name = "parent_id")
     private List<TechCapabilityRelations> children;
 }

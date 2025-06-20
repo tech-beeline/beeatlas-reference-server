@@ -34,14 +34,4 @@ public class UserController {
         userService.passwordChange(id, passwordDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @GetMapping("/get_test")
-    public String getUser(@Valid @RequestBody UserRequestDTO userRequest) {    // для проверки доступа
-        return userService.getUser(userRequest);
-    }
-
-    @PostMapping("/post_test")
-    public String user() {
-        return userService.User();                        // для проверки доступа
-    }
 }

@@ -78,7 +78,7 @@ public class AuthFilter extends OncePerRequestFilter {
     }
 
     private boolean isPasswordChange(HttpServletRequest request) {
-        if (!request.getMethod().equals("POST")) {
+        if (!request.getMethod().equals("PATCH")) {
             return false;
         }
         String uri = request.getRequestURI();

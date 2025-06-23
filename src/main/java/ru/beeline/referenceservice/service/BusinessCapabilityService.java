@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.beeline.referenceservice.client.DashboardClient;
 import ru.beeline.referenceservice.domain.BusinessCapability;
 import ru.beeline.referenceservice.dto.BusinessCapabilityDTO;
 import ru.beeline.referenceservice.dto.PutBusinessCapabilityDTO;
@@ -27,14 +26,10 @@ public class BusinessCapabilityService {
     private final BusinessCapabilityRepository businessCapabilityRepository;
     private final BusinessCapabilityMapper businessCapabilityMapper;
 
-    private final DashboardClient dashboardClient;
-
     public BusinessCapabilityService(BusinessCapabilityRepository businessCapabilityRepository,
-                                     BusinessCapabilityMapper businessCapabilityMapper,
-                                     DashboardClient dashboardClient) {
+                                     BusinessCapabilityMapper businessCapabilityMapper) {
         this.businessCapabilityRepository = businessCapabilityRepository;
         this.businessCapabilityMapper = businessCapabilityMapper;
-        this.dashboardClient = dashboardClient;
     }
 
     public List<BusinessCapabilityDTO> getCapabilities(Integer limit, Integer offset, String findBy) {
@@ -75,7 +70,6 @@ public class BusinessCapabilityService {
                 log.info("capabilityDTO from Dashboard: " + capabilityDTO + " PutCapability from bd: "
                         + businessCapabilityMapper.convertToPutCapabilityDTO(businessCapability).toString());
                 updateCapability(businessCapability, capabilityDTO);
-                dashboardClient.putCapability(capabilityDTO);
             }
         } else {
             log.info("create capability");

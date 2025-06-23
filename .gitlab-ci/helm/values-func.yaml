@@ -4,7 +4,6 @@ env:
   SPRING_DATASOURCE_URL: "jdbc:postgresql://fdmrefs-tst.database-test-pg.cloud.vimpelcom.ru:5432/refs_func"
   SPRING_DATASOURCE_USERNAME: "vault:eafdmmart/data/test/func/fdm#refs.db.user"
   SPRING_DATASOURCE_PASSWORD: "vault:eafdmmart/data/test/func/fdm#refs.db.pass"
-  INTEGRATION_DASHBOARD_SERVER_URL: "vault:eafdmmart/data/test/func/fdm#dashboardserver"
 podAnnotations:
   vault.security.banzaicloud.io/vault-addr: "https://vault-test.vimpelcom.ru/"
 

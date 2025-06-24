@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.beeline.referenceservice.domain.BusinessCapability;
 import ru.beeline.referenceservice.dto.BusinessCapabilityDTO;
 import ru.beeline.referenceservice.dto.PutBusinessCapabilityDTO;
+import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.helper.pagination.OffsetBasedPageRequest;
 import ru.beeline.referenceservice.mapper.BusinessCapabilityMapper;
 import ru.beeline.referenceservice.repository.BusinessCapabilityRepository;
@@ -56,6 +57,7 @@ public class BusinessCapabilityService {
     }
 
     public void putCapability(PutBusinessCapabilityDTO capabilityDTO) {
+        validateBusinessCapabilityDTO(capabilityDTO);
         Optional<BusinessCapability> businessCapabilityOptional = businessCapabilityRepository.findByCode(capabilityDTO.getCode());
         BusinessCapability businessCapability;
         if (businessCapabilityOptional.isPresent()) {
@@ -75,6 +77,40 @@ public class BusinessCapabilityService {
             log.info("create capability");
             createCapabilities(capabilityDTO);
         }
+    }
+
+    public void validateBusinessCapabilityDTO(PutBusinessCapabilityDTO capabilityDTO) {
+        StringBuilder errMsg = new StringBuilder();
+        if (capabilityDTO.getCode() == null || capabilityDTO.getCode().isEmpty()) {
+            capabilityDTO.setCode(getPrefix(capabilityDTO) +
+                    (businessCapabilityRepository.findFirstByOrderByIdDesc().getId() + 1));
+        }
+        if (!capabilityDTO.getIsDomain() && (capabilityDTO.getParent() == null || capabilityDTO.getParent().isEmpty())) {
+            errMsg.append("Отсутствует обязательное поле parent\n");
+        }
+        if (capabilityDTO.getName() == null) {
+            errMsg.append("Отсутствует обязательное поле name\n");
+        }
+        if (capabilityDTO.getCode().equals(capabilityDTO.getParent())) {
+            errMsg.append("Возможность не может быть собственным родителем\n");
+        }
+        if (!errMsg.toString().isEmpty()) {
+            throw new ValidationException(errMsg.toString());
+        }
+    }
+
+    private String getPrefix(PutBusinessCapabilityDTO businessCapability) {
+        String prefix;
+        if (!businessCapability.getIsDomain()) {
+            prefix = "BC.";
+        } else {
+            if (businessCapability.getParent() == null || businessCapability.getParent().isEmpty()) {
+                prefix = "GRP.";
+            } else {
+                prefix = "DMN.";
+            }
+        }
+        return prefix;
     }
 
     private BusinessCapability updateCapability(BusinessCapability businessCapability, PutBusinessCapabilityDTO capabilityDTO) {

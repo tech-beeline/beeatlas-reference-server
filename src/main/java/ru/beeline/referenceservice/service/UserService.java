@@ -2,12 +2,11 @@ package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.context.RequestContext;
+import ru.beeline.referenceservice.domain.User;
 import ru.beeline.referenceservice.dto.PasswordDTO;
 import ru.beeline.referenceservice.dto.UserRequestDTO;
 import ru.beeline.referenceservice.exception.LoginAlreadyExistsException;
-import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.repository.UserRepository;
 import ru.beeline.referenceservice.util.PasswordUtil;
 
@@ -42,13 +41,13 @@ public class UserService {
 
     private void loginValidate(String login) {
         if (login == null || login.isEmpty()) {
-            throw new ValidationException("Логин не должен быть пустым");
+            throw new IllegalArgumentException("Логин не должен быть пустым");
         }
         if (login.contains(" ")) {
-            throw new ValidationException("Логин не должен содержать пробелов");
+            throw new IllegalArgumentException("Логин не должен содержать пробелов");
         }
         if (!login.matches("^[a-zA-Z0-9]{1,255}$")) {
-            throw new ValidationException("Логин должен содержать только латинские буквы и цифры, максимум 255 символов");
+            throw new IllegalArgumentException("Логин должен содержать только латинские буквы и цифры, максимум 255 символов");
         }
     }
 
@@ -85,16 +84,16 @@ public class UserService {
 
     private void validatePassword(String password) {
         if (password == null || password.isEmpty()) {
-            throw new ValidationException("Пароль не должен быть пустым");
+            throw new IllegalArgumentException("Пароль не должен быть пустым");
         }
         if (password.length() > 255) {
-            throw new ValidationException("Длина пароля должна быть от 1 до 255 символов");
+            throw new IllegalArgumentException("Длина пароля должна быть от 1 до 255 символов");
         }
         if (password.contains(" ")) {
-            throw new ValidationException("Пароль не должен содержать пробелов");
+            throw new IllegalArgumentException("Пароль не должен содержать пробелов");
         }
         if (!password.matches("^[\\p{ASCII}]+$")) {
-            throw new ValidationException("Пароль должен содержать только латинские буквы, цифры и спецсимволы");
+            throw new IllegalArgumentException("Пароль должен содержать только латинские буквы, цифры и спецсимволы");
         }
     }
 

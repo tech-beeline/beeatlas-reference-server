@@ -25,8 +25,8 @@ public class CustomExceptionHandler {
                 .body("400 BAD_REQUEST: " + e.getMessage());
     }
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<Object> handleException(ValidationException e) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleException(IllegalArgumentException e) {
         log.error(e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -50,5 +50,14 @@ public class CustomExceptionHandler {
                 .status(HttpStatus.BAD_GATEWAY)
                 .header("content-type", MediaType.APPLICATION_JSON_VALUE)
                 .body("502 Dashboard service error: " + e.getMessage());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handleException(ValidationException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .header("content-type", MediaType.APPLICATION_JSON_VALUE)
+                .body("409 Ошибка валидации тела запроса : " + e.getMessage());
     }
 }

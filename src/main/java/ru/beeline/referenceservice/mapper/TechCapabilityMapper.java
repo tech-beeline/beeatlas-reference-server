@@ -3,12 +3,15 @@ package ru.beeline.referenceservice.mapper;
 import org.springframework.stereotype.Component;
 import ru.beeline.referenceservice.domain.Product;
 import ru.beeline.referenceservice.domain.TechCapability;
+import ru.beeline.referenceservice.domain.TechCapabilityRelations;
+import ru.beeline.referenceservice.dto.PutTechCapabilityDTO;
 import ru.beeline.referenceservice.dto.TechCapabilityDTO;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class TechCapabilityMapper {
@@ -44,5 +47,22 @@ public class TechCapabilityMapper {
                 .parents(businessCapabilityMapper.convertToBCParentDTOList(techCapability.getParents()))
                 .systemId(Optional.ofNullable(product).map(Product::getId).orElse(null))
                 .build();
+    }
+
+    public PutTechCapabilityDTO convertToPutTechCapabilityDTO(TechCapability techCapability) {
+        return PutTechCapabilityDTO.builder()
+                .code(techCapability.getCode())
+                .name(techCapability.getName())
+                .description(techCapability.getDescription())
+                .status(techCapability.getStatus())
+                .parents(getParentsCodes(techCapability.getParents()))
+                .targetSystemCode(techCapability.getResponsibilityProduct().getAlias())
+                .build();
+    }
+
+    public List<String> getParentsCodes(List<TechCapabilityRelations> techCapabilitiesRelations) {
+        return techCapabilitiesRelations.stream()
+                .map(relation -> relation.getBusinessCapability().getCode())
+                .collect(Collectors.toList());
     }
 }

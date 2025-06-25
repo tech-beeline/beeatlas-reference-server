@@ -9,4 +9,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p WHERE LOWER(p.alias) = LOWER(:code)")
     Product findByAliasCaseInsensitive(@Param("code") String code);
+
+    boolean existsByName(String name);
 }

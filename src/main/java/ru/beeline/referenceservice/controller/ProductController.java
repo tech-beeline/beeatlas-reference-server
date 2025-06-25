@@ -2,10 +2,11 @@ package ru.beeline.referenceservice.controller;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import ru.beeline.referenceservice.dto.ProductDTO;
+import ru.beeline.referenceservice.dto.PutProductDTO;
 import ru.beeline.referenceservice.service.ProductService;
 
 import java.util.List;
@@ -25,5 +26,13 @@ public class ProductController {
     @ApiOperation(value = "Получить все продукты", response = List.class)
     public List<ProductDTO> getProducts() {
         return productService.getProducts();
+    }
+
+    @PutMapping("/product/{code}")
+    @ApiOperation(value = "Редактирование продукта")
+    public ResponseEntity putProducts(@PathVariable String code,
+                                      @RequestBody PutProductDTO productPutDto) {
+        productService.createOrUpdate(productPutDto, code);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

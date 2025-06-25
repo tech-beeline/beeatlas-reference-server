@@ -2,7 +2,10 @@ package ru.beeline.referenceservice.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.beeline.referenceservice.domain.Product;
 import ru.beeline.referenceservice.dto.ProductDTO;
+import ru.beeline.referenceservice.dto.PutProductDTO;
+import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.mapper.ProductMapper;
 import ru.beeline.referenceservice.repository.ProductRepository;
 
@@ -23,5 +26,34 @@ public class ProductService {
 
     public List<ProductDTO> getProducts() {
         return productMapper.mapToDto(productRepository.findAll());
+    }
+
+    public void createOrUpdate(PutProductDTO productPutDto, String code) {
+        validateProductPutDto(productPutDto);
+        Product product = productRepository.findByAliasCaseInsensitive(code);
+        if (product == null) {
+            if (productRepository.existsByName(productPutDto.getName())) {
+                throw new ValidationException("Продукт с таким именем уже существует");
+            }
+            product = Product.builder()
+                    .alias(code)
+                    .name(productPutDto.getName())
+                    .description(productPutDto.getDescription())
+                    .build();
+        } else {
+            product.setName(productPutDto.getName());
+            product.setDescription(productPutDto.getDescription());
+        }
+        productRepository.save(product);
+    }
+
+    public void validateProductPutDto(PutProductDTO productPutDto) {
+        StringBuilder errMsg = new StringBuilder();
+        if (productPutDto.getName() == null || productPutDto.getName().equals("")) {
+            errMsg.append("Отсутствует обязательное поле name");
+        }
+        if (!errMsg.toString().isEmpty()) {
+            throw new ValidationException(errMsg.toString());
+        }
     }
 }

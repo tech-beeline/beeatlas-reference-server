@@ -7,9 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.beeline.referenceservice.domain.TechCapability;
 
+import java.util.Optional;
+
 @Repository
 public interface TechCapabilityRepository extends JpaRepository<TechCapability, Integer> {
 
     @Query("SELECT c FROM TechCapability c WHERE c.deletedDate is NULL ORDER BY c.name")
     Page<TechCapability> findCapabilities(Pageable pageable);
+
+    Optional<TechCapability> findByCode(String code);
 }

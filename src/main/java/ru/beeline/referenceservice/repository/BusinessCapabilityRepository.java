@@ -36,4 +36,6 @@ public interface BusinessCapabilityRepository extends JpaRepository<BusinessCapa
     Optional<BusinessCapability> findByCode(String code);
 
     BusinessCapability findFirstByOrderByIdDesc();
+
+    List<BusinessCapability> findAllByCodeIn(List<String> codes);
 }

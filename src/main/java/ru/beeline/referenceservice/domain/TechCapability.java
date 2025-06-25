@@ -1,9 +1,6 @@
 package ru.beeline.referenceservice.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -12,6 +9,7 @@ import java.util.List;
 @Data
 @Entity
 @Builder
+@ToString(exclude = "businessCapability")
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tech_capability", schema = "capability")

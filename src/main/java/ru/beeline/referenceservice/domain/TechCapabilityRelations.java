@@ -18,7 +18,7 @@ public class TechCapabilityRelations {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tech_capability_relations_id_generator")
-    @SequenceGenerator(name = "tech_capability_relations_id_generator", sequenceName = "capability.TCR_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "tech_capability_relations_id_generator", sequenceName = "capability.tech_capability_relations_id_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne

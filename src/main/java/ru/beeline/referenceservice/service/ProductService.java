@@ -43,9 +43,12 @@ public class ProductService {
                     .createdDate(LocalDateTime.now())
                     .build();
         } else {
-            product.setName(productPutDto.getName());
-            product.setDescription(productPutDto.getDescription());
-            product.setLastModifiedDate(LocalDateTime.now());
+            if (!product.getName().equals(productPutDto.getName()) &&
+                    !product.getDescription().equals(productPutDto.getDescription())) {
+                product.setName(productPutDto.getName());
+                product.setDescription(productPutDto.getDescription());
+                product.setLastModifiedDate(LocalDateTime.now());
+            }
         }
         productRepository.save(product);
     }

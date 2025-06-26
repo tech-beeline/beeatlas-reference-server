@@ -28,15 +28,15 @@ public class ProductService {
         return productMapper.mapToDto(productRepository.findAll());
     }
 
-    public void createOrUpdate(PutProductDTO productPutDto, String code) {
+    public void createOrUpdate(PutProductDTO productPutDto, String alias) {
         validateProductPutDto(productPutDto);
-        Product product = productRepository.findByAliasCaseInsensitive(code);
+        Product product = productRepository.findByAliasCaseInsensitive(alias);
         if (product == null) {
             if (productRepository.existsByName(productPutDto.getName())) {
                 throw new ValidationException("Продукт с таким именем уже существует");
             }
             product = Product.builder()
-                    .alias(code)
+                    .alias(alias)
                     .name(productPutDto.getName())
                     .description(productPutDto.getDescription())
                     .build();

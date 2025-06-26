@@ -28,11 +28,11 @@ public class ProductController {
         return productService.getProducts();
     }
 
-    @PutMapping("/product/{code}")
+    @PutMapping("/{alias}")
     @ApiOperation(value = "Редактирование продукта")
-    public ResponseEntity putProducts(@PathVariable String code,
+    public ResponseEntity putProducts(@PathVariable String alias,
                                       @RequestBody PutProductDTO productPutDto) {
-        productService.createOrUpdate(productPutDto, code);
+        productService.createOrUpdate(productPutDto, alias);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

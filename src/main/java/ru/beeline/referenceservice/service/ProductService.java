@@ -9,6 +9,7 @@ import ru.beeline.referenceservice.exception.ValidationException;
 import ru.beeline.referenceservice.mapper.ProductMapper;
 import ru.beeline.referenceservice.repository.ProductRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Transactional
@@ -39,10 +40,12 @@ public class ProductService {
                     .alias(alias)
                     .name(productPutDto.getName())
                     .description(productPutDto.getDescription())
+                    .createdDate(LocalDateTime.now())
                     .build();
         } else {
             product.setName(productPutDto.getName());
             product.setDescription(productPutDto.getDescription());
+            product.setLastModifiedDate(LocalDateTime.now());
         }
         productRepository.save(product);
     }

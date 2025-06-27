@@ -62,10 +62,13 @@ public class TechCapabilityService {
     public void createOrUpdate(PutTechCapabilityDTO techCapability) {
         validateTechCapabilityDTO(techCapability);
         Product product = null;
+        Integer productId = null;
         if (techCapability.getTargetSystemCode() != null && !techCapability.getTargetSystemCode().isEmpty()) {
             product = productRepository.findByAliasCaseInsensitive(techCapability.getTargetSystemCode());
-            if (product == null) {
-                throw new IllegalArgumentException("Product с alias '" + techCapability.getTargetSystemCode() + "' не найден");
+            if (product != null) {
+                productId = product.getId();
+            }else {
+                techCapability.setTargetSystemCode(null);
             }
         }
         Optional<TechCapability> currentTechCapabilityOpt = techCapabilityRepository.findByCode(techCapability.getCode());
@@ -80,38 +83,42 @@ public class TechCapabilityService {
             }
         } else {
             TechCapability existing = currentTechCapabilityOpt.get();
+            Product tcProduct = existing.getResponsibilityProduct();
+            Integer tcProductId = tcProduct != null ? tcProduct.getId() : null;
             PutTechCapabilityDTO existingDTO = techCapabilityMapper.convertToPutTechCapabilityDTO(existing);
-            boolean equals = equalsDashboardDTO(techCapability, existingDTO);
-            boolean wasDeleted = existing.getDeletedDate() != null;
-            boolean productChanged = !Objects.equals(product.getId(), existing.getResponsibilityProduct().getId());
-            if (equals || (!equals && wasDeleted) || productChanged) {
+            boolean isDifferent = isDifferentFromCurrent(techCapability, existingDTO);
+            boolean productChanged = !Objects.equals(productId, tcProductId);
+            boolean isDeleted = existing.getDeletedDate() != null;
+            boolean shouldUpdate = isDifferent || isDeleted || productChanged;
+            if (shouldUpdate) {
                 log.info("Updating TechCapability with code: {}", techCapability.getCode());
-                updateTechCapability(existing, techCapability, product);
-                log.info("Deleting old relations");
-                techCapabilityRelationsRepository.deleteAllByTechCapability(existing);
-                if (hasParents) {
-                    log.info("Creating new relations");
-                    createRelations(existing, businessCapabilityRepository.findAllByCodeIn(techCapability.getParents()));
-                }
+                updateTechCapabilityWithRelations(existing, techCapability, product, hasParents);
             }
         }
     }
 
-    private Boolean equalsDashboardDTO(PutTechCapabilityDTO techCapability, PutTechCapabilityDTO currentTechCapabilityDTO) {
+    private void updateTechCapabilityWithRelations(TechCapability existing, PutTechCapabilityDTO techCapability, Product product, boolean hasParents) {
+        updateTechCapability(existing, techCapability, product);
+        log.info("Deleting old relations");
+        techCapabilityRelationsRepository.deleteAllByTechCapability(existing);
+        if (hasParents) {
+            log.info("Creating new relations");
+            createRelations(existing, businessCapabilityRepository.findAllByCodeIn(techCapability.getParents()));
+        }
+    }
+
+    private Boolean isDifferentFromCurrent (PutTechCapabilityDTO techCapability, PutTechCapabilityDTO currentTechCapabilityDTO) {
         techCapability.setDescription(UrlWrapper.proxyUrl(techCapability.getDescription()));
-        if (techCapability.getParents() != null) {
-            Set<String> techCapabilityList = new TreeSet<>(techCapability.getParents());
-            techCapability.setParents(new ArrayList<>(techCapabilityList));
-        } else {
-            techCapability.setParents(new ArrayList<>());
-        }
-        if (currentTechCapabilityDTO.getParents() != null) {
-            Set<String> currentTechCapabilityDTOList = new TreeSet<>(currentTechCapabilityDTO.getParents());
-            currentTechCapabilityDTO.setParents(new ArrayList<>(currentTechCapabilityDTOList));
-        } else {
-            currentTechCapabilityDTO.setParents(new ArrayList<>());
-        }
+        techCapability.setParents(normalizeParents(techCapability.getParents()));
+        currentTechCapabilityDTO.setParents(normalizeParents(currentTechCapabilityDTO.getParents()));
         return !techCapability.equals(currentTechCapabilityDTO);
+    }
+
+    private List<String> normalizeParents(List<String> parents) {
+        if (parents == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(new TreeSet<>(parents));
     }
 
     public void validateTechCapabilityDTO(PutTechCapabilityDTO techCapability) {

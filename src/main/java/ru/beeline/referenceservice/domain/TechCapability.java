@@ -9,7 +9,8 @@ import java.util.List;
 @Data
 @Entity
 @Builder
-@ToString(exclude = "businessCapability")
+@ToString(exclude = {"parents"})
+@EqualsAndHashCode(exclude = {"parents"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tech_capability", schema = "capability")

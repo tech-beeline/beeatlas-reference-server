@@ -50,13 +50,15 @@ public class TechCapabilityMapper {
     }
 
     public PutTechCapabilityDTO convertToPutTechCapabilityDTO(TechCapability techCapability) {
+        Product product = techCapability.getResponsibilityProduct();
+        String productAlias = product != null ? product.getAlias() : null;
         return PutTechCapabilityDTO.builder()
                 .code(techCapability.getCode())
                 .name(techCapability.getName())
                 .description(techCapability.getDescription())
                 .status(techCapability.getStatus())
                 .parents(getParentsCodes(techCapability.getParents()))
-                .targetSystemCode(techCapability.getResponsibilityProduct().getAlias())
+                .targetSystemCode(productAlias)
                 .build();
     }
 

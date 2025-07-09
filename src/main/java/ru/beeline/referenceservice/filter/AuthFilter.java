@@ -1,12 +1,14 @@
 package ru.beeline.referenceservice.filter;
 
 
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.beeline.referenceservice.context.RequestContext;
+import ru.beeline.referenceservice.domain.Product;
 import ru.beeline.referenceservice.domain.User;
+import ru.beeline.referenceservice.repository.ProductRepository;
 import ru.beeline.referenceservice.repository.UserRepository;
+import ru.beeline.referenceservice.util.AuthUtil;
 import ru.beeline.referenceservice.util.PasswordUtil;
 
 import javax.servlet.FilterChain;
@@ -22,16 +24,32 @@ import java.util.Optional;
 public class AuthFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
-    public AuthFilter(UserRepository userRepository) {
+    public AuthFilter(UserRepository userRepository, ProductRepository productRepository) {
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        Optional<User> userOpt = authenticate(request);
-        if (userOpt.isEmpty() || !isAuthorized(request, userOpt.get())) {
+        CachedBodyHttpServletRequest cachedRequest = new CachedBodyHttpServletRequest(request);
+        Optional<User> userOpt;
+        String authHeader = cachedRequest.getHeader("Authorization");
+        String xAuthHeader = cachedRequest.getHeader("X-Authorization");
+        if (!validateHeaders(authHeader, xAuthHeader, response)) {
+            return;
+        }
+        if (authHeader != null && !authHeader.isEmpty()) {
+            userOpt = authenticateBasic(authHeader);
+        } else {
+            userOpt = authenticateXAuthorization(cachedRequest, response, xAuthHeader);
+            if(userOpt.isEmpty()){
+                return;
+            }
+        }
+        if (userOpt.isEmpty() || !isAuthorized(cachedRequest, userOpt.get())) {
             if (userOpt.isEmpty()) {
                 sendUnauthorized(response);
             } else {
@@ -42,47 +60,92 @@ public class AuthFilter extends OncePerRequestFilter {
         User user = userOpt.get();
         RequestContext.setCurrentUser(user);
         try {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(cachedRequest, response);
         } finally {
             RequestContext.clear();
         }
     }
 
-    private Optional<User> authenticate(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Basic ")) {
+    private boolean validateHeaders(String authHeader, String xAuthHeader, HttpServletResponse response) throws IOException {
+        if ((authHeader == null || authHeader.isEmpty()) && (xAuthHeader == null || xAuthHeader.isEmpty())) {
+            sendUnauthorized(response);
+            return false;
+        }
+        if (authHeader != null && !authHeader.isEmpty() && xAuthHeader != null && !xAuthHeader.isEmpty()) {
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Only one authorization header allowed");
+            return false;
+        }
+        return true;
+    }
+
+    private Optional<User> authenticateBasic(String authHeader) {
+        if (!authHeader.startsWith("Basic ")) {
             return Optional.empty();
         }
         String base64Credentials = authHeader.substring("Basic ".length());
-        String decoded;
         try {
-            byte[] credBytes = Base64.getDecoder().decode(base64Credentials);
-            decoded = new String(credBytes, StandardCharsets.UTF_8);
+            String decoded = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
+            String[] parts = decoded.split(":", 2);
+            if (parts.length != 2) return Optional.empty();
+            String login = parts[0];
+            String password = parts[1];
+            String passwordHash = PasswordUtil.sha256(password);
+            return userRepository.findByLoginAndPassword(login, passwordHash);
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
-        String[] parts = decoded.split(":", 2);
-        if (parts.length != 2) {
+    }
+
+    private Optional<User> authenticateXAuthorization(HttpServletRequest request, HttpServletResponse response, String xAuthHeader) throws IOException {
+        String nonce = request.getHeader("Nonce");
+        if (nonce == null || nonce.isEmpty()) {
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Missing Nonce header");
             return Optional.empty();
         }
-        String login = parts[0];
-        String password = parts[1];
-        String passwordHash = PasswordUtil.sha256(password);
-        return userRepository.findByLoginAndPassword(login, passwordHash);
+        String[] parts = xAuthHeader.split(":", 2);
+        if (parts.length != 2) {
+            sendUnauthorized(response);
+            return Optional.empty();
+        }
+        String apiKey = parts[0];
+        String base64Signature = parts[1];
+        Optional<Product> productOpt = productRepository.findByStructurizrApiKey(apiKey);
+        if (productOpt.isEmpty()) {
+            sendUnauthorized(response);
+            return Optional.empty();
+        }
+        Product product = productOpt.get();
+        String stringToSign = buildStringToSign(request, nonce);
+        String calculatedSignature = AuthUtil.hmacSha256(stringToSign, product.getStructurizrApiSecret());
+        if (!calculatedSignature.equals(base64Signature)) {
+            sendUnauthorized(response);
+            return Optional.empty();
+        }
+        User user = new User();
+        user.setLogin(apiKey);
+        user.setAdmin(true);
+        return Optional.of(user);
+    }
+
+    private String buildStringToSign(HttpServletRequest request, String nonce) {
+        String method = request.getMethod();
+        String fullPath = request.getRequestURI();
+        String queryString = request.getQueryString();
+        if (queryString != null && !queryString.isEmpty()) {
+            fullPath += "?" + queryString;
+        }
+        byte[] bodyBytes = ((CachedBodyHttpServletRequest) request).getCachedBody();
+        String md5Body = AuthUtil.md5Hex(bodyBytes);
+        String contentType = Optional.ofNullable(request.getContentType()).orElse("");
+        return method + "\n" + fullPath + "\n" + md5Body + "\n" + contentType + "\n" + nonce;
     }
 
     private boolean isAuthorized(HttpServletRequest request, User user) {
-        boolean isGet = HttpMethod.GET.matches(request.getMethod());
-        boolean isPasswordChangeEndpoint = isPasswordChange(request);
-        return isGet || isPasswordChangeEndpoint || user.getAdmin();
+        return "GET".equalsIgnoreCase(request.getMethod()) || isPasswordChange(request) || user.getAdmin();
     }
 
     private boolean isPasswordChange(HttpServletRequest request) {
-        if (!request.getMethod().equals("PATCH")) {
-            return false;
-        }
-        String uri = request.getRequestURI();
-        return uri.matches("^/api/v1/users/\\d+/password$");
+        return "PATCH".equalsIgnoreCase(request.getMethod()) && request.getRequestURI().matches("^/api/v1/users/\\d+/password$");
     }
 
     private void sendForbidden(HttpServletResponse response) throws IOException {
@@ -100,4 +163,3 @@ public class AuthFilter extends OncePerRequestFilter {
         response.getWriter().write("{\"message\": \"" + message + "\"}");
     }
 }
-

@@ -35,4 +35,13 @@ public class Product {
 
     @Column(name = "deleted_date")
     private LocalDateTime deletedDate;
+
+    @Column(name = "structurizr_api_key")
+    private String structurizrApiKey;
+
+    @Column(name = "structurizr_api_secret")
+    private String structurizrApiSecret;
+
+    @Column(name = "structurizr_url")
+    private String structurizrUrl;
 }

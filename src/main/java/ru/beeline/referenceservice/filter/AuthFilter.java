@@ -137,7 +137,7 @@ public class AuthFilter extends OncePerRequestFilter {
         byte[] bodyBytes = ((CachedBodyHttpServletRequest) request).getCachedBody();
         String md5Body = AuthUtil.md5Hex(bodyBytes);
         String contentType = Optional.ofNullable(request.getContentType()).orElse("");
-        return method + "\n" + fullPath + "\n" + md5Body + "\n" + contentType + "\n" + nonce;
+        return method + "\n" + fullPath + "\n" + md5Body + "\n" + contentType + "\n" + nonce + "\n";
     }
 
     private boolean isAuthorized(HttpServletRequest request, User user) {

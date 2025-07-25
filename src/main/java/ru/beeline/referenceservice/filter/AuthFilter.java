@@ -116,6 +116,7 @@ public class AuthFilter extends OncePerRequestFilter {
         }
         Product product = productOpt.get();
         String stringToSign = buildStringToSign(request, nonce);
+        logger.info(stringToSign);
         String calculatedSignature = AuthUtil.hmacSha256(stringToSign, product.getStructurizrApiSecret());
         if (!calculatedSignature.equals(base64Signature)) {
             sendUnauthorized(response);
@@ -133,6 +134,7 @@ public class AuthFilter extends OncePerRequestFilter {
         byte[] bodyBytes = ((CachedBodyHttpServletRequest) request).getCachedBody();
         String md5Body = AuthUtil.md5Hex(bodyBytes);
         String contentType = Optional.ofNullable(request.getContentType()).orElse("");
+        logger.info(method + "\n" + path + "\n" + md5Body + "\n" + contentType + "\n" + nonce + "\n");
         return method + "\n" + path + "\n" + md5Body + "\n" + contentType + "\n" + nonce + "\n";
     }
 

@@ -129,15 +129,11 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private String buildStringToSign(HttpServletRequest request, String nonce) {
         String method = request.getMethod();
-        String fullPath = request.getRequestURI();
-        String queryString = request.getQueryString();
-        if (queryString != null && !queryString.isEmpty()) {
-            fullPath += "?" + queryString;
-        }
+        String path = request.getRequestURI();
         byte[] bodyBytes = ((CachedBodyHttpServletRequest) request).getCachedBody();
         String md5Body = AuthUtil.md5Hex(bodyBytes);
         String contentType = Optional.ofNullable(request.getContentType()).orElse("");
-        return method + "\n" + fullPath + "\n" + md5Body + "\n" + contentType + "\n" + nonce + "\n";
+        return method + "\n" + path + "\n" + md5Body + "\n" + contentType + "\n" + nonce + "\n";
     }
 
     private boolean isAuthorized(HttpServletRequest request, User user) {

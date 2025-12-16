@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2024 PJSC VimpelCom
+ */
 package ru.beeline.referenceservice.filter;
 
 
@@ -29,6 +32,21 @@ public class AuthFilter extends OncePerRequestFilter {
     public AuthFilter(UserRepository userRepository, ProductRepository productRepository) {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Исключаем Swagger UI и API документацию из фильтра аутентификации
+        return path != null && (
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/v2/api-docs") ||
+                path.startsWith("/v3/api-docs") ||
+                path.equals("/swagger-ui.html") ||
+                path.equals("/") ||
+                path.startsWith("/actuator")
+        );
     }
 
     @Override

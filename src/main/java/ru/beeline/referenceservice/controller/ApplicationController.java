@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2024 PJSC VimpelCom
+ */
 package ru.beeline.referenceservice.controller;
 
 import org.springframework.beans.factory.annotation.Value;

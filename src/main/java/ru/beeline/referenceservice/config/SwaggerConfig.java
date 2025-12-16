@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2024 PJSC VimpelCom
+ */
 package ru.beeline.referenceservice.config;
 
 import org.springframework.context.annotation.Bean;
@@ -21,16 +24,17 @@ public class SwaggerConfig {
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("ru.beeline.referenceservice.controller"))
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .enable(true);
     }
 
     private ApiInfo getApiInfo() {
         return new ApiInfo(
-                "Eafdmmart API",
-                "API документация",
+                "Open Source Reference Service API",
+                "API документация для справочного сервиса",
                 "1.0",
                 "Terms of service",
-                new Contact("Example", "www.example.com", "example@company.com"),
+                new Contact("Beeline", "https://www.beeline.ru", "support@beeline.ru"),
                 "License of API", "API license URL", Collections.emptyList());
     }
 }

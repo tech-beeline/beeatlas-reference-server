@@ -14,7 +14,7 @@ import ru.beeline.referenceservice.service.BusinessCapabilityService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/business-capability")
+@RequestMapping("/capability/api/v1/business-capability")
 public class BusinessCapabilityController {
 
     private final BusinessCapabilityService businessCapabilityService;

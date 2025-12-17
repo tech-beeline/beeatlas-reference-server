@@ -14,7 +14,7 @@ import ru.beeline.referenceservice.service.TechCapabilityService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/tech-capability")
+@RequestMapping("/capability/api/v1/tech-capabilities")
 public class TechCapabilityController {
 
     private final TechCapabilityService techCapabilityService;

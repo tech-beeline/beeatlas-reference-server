@@ -15,7 +15,7 @@ import ru.beeline.referenceservice.service.ProductService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/product")
+@RequestMapping("/product/api/v1/product")
 @Api(value = "Product API", tags = "product")
 public class ProductController {
 

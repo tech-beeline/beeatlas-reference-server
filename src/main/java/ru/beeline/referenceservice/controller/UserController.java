@@ -14,7 +14,7 @@ import ru.beeline.referenceservice.service.UserService;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/users/api/v1/users")
+@RequestMapping("/user/api/v1/users")
 public class UserController {
 
     private final UserService userService;

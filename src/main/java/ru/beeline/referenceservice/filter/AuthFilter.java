@@ -161,7 +161,7 @@ public class AuthFilter extends OncePerRequestFilter {
     }
 
     private boolean isPasswordChange(HttpServletRequest request) {
-        return "PATCH".equalsIgnoreCase(request.getMethod()) && request.getRequestURI().matches("^/api/v1/users/\\d+/password$");
+        return "PATCH".equalsIgnoreCase(request.getMethod()) && request.getRequestURI().matches("^/user/api/v1/users/\\d+/password$");
     }
 
     private void sendForbidden(HttpServletResponse response) throws IOException {

@@ -290,17 +290,193 @@ The following sequences are automatically created by PostgreSQL for SERIAL colum
 
 ## Migration Files
 
-The database structure is managed by Flyway migrations located in `src/main/resources/db/migration/`:
+The database structure is managed by Flyway migrations located in `src/main/resources/db/migration/`. Migrations are executed in numerical order and are idempotent (safe to run multiple times).
 
-- `V0001__create_schema_users.sql` - Creates `users` schema and `user` table
-- `V0002__create_table_user.sql` - Inserts default admin user
-- `V0003__create_capability_schema.sql` - Creates `capability` schema
-- `V0004__create_business_capability_table.sql` - Creates `business_capability` table
-- `V0005__create_products_schema_and_table.sql` - Creates `products` schema and `product` table
-- `V0006__create_table_tech_capability.sql` - Creates `tech_capability` table
-- `V0007__create_capability_tech_capability_relations_table.sql` - Creates `tech_capability_relations` junction table
-- `V0008__add_column_to_product_table.sql` - Adds Structurizr integration columns to `product` table
-- `V0009__insert_initial_capabilities.sql` - Inserts initial business capability data
+### V0001__create_schema_users.sql
+
+**Purpose**: Creates the initial `users` schema and the `user` table.
+
+**Actions**:
+- Creates the `users` schema if it doesn't exist
+- Creates the `users.user` table with columns:
+  - `id` (SERIAL PRIMARY KEY)
+  - `login` (VARCHAR(255) UNIQUE NOT NULL)
+  - `password` (VARCHAR(255) NOT NULL)
+  - `admin` (BOOLEAN DEFAULT FALSE)
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` checks
+
+---
+
+### V0002__create_table_user.sql
+
+**Purpose**: Inserts the default administrator user for initial system access.
+
+**Actions**:
+- Checks if admin user already exists
+- Inserts default admin user if not present:
+  - Login: `admin`
+  - Password: `admin` (SHA-256 hash: `8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918`)
+  - Admin flag: `true`
+
+**Security Note**: The default password should be changed immediately after first deployment.
+
+**Idempotent**: Yes - checks for existing admin user before insertion
+
+---
+
+### V0003__create_capability_schema.sql
+
+**Purpose**: Creates the `capability` schema for storing business and technical capabilities.
+
+**Actions**:
+- Creates the `capability` schema if it doesn't exist
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` check
+
+---
+
+### V0004__create_business_capability_table.sql
+
+**Purpose**: Creates the `business_capability` table for hierarchical business capability management.
+
+**Actions**:
+- Ensures `capability` schema exists
+- Creates `capability.business_capability` table with columns:
+  - `id` (SERIAL PRIMARY KEY)
+  - `code` (TEXT UNIQUE NOT NULL) - Unique capability code identifier
+  - `name` (TEXT NOT NULL) - Capability name
+  - `description` (TEXT) - Optional description
+  - `created_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `last_modified_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `deleted_date` (TIMESTAMP WITHOUT TIME ZONE) - For soft deletion
+  - `status` (TEXT) - Capability status (e.g., "Proposed", "Active")
+  - `parent_id` (INTEGER) - Self-referencing foreign key for hierarchy
+  - `is_domain` (BOOLEAN) - Flag indicating domain capability
+- Creates foreign key constraint: `parent_id` → `capability.business_capability.id`
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` check
+
+---
+
+### V0005__create_products_schema_and_table.sql
+
+**Purpose**: Creates the `products` schema and `product` table for product management.
+
+**Actions**:
+- Creates the `products` schema if it doesn't exist
+- Creates `products.product` table with columns:
+  - `id` (SERIAL PRIMARY KEY)
+  - `name` (TEXT UNIQUE NOT NULL) - Unique product name
+  - `alias` (TEXT NOT NULL) - Product alias/identifier
+  - `description` (TEXT) - Optional description
+  - `created_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `last_modified_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `deleted_date` (TIMESTAMP WITHOUT TIME ZONE) - For soft deletion
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` checks
+
+---
+
+### V0006__create_table_tech_capability.sql
+
+**Purpose**: Creates the `tech_capability` table for technical capability management.
+
+**Actions**:
+- Creates `capability.tech_capability` table with columns:
+  - `id` (SERIAL PRIMARY KEY)
+  - `code` (TEXT UNIQUE NOT NULL) - Unique technical capability code
+  - `name` (TEXT NOT NULL) - Technical capability name
+  - `description` (TEXT) - Optional description
+  - `created_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `last_modified_date` (TIMESTAMP WITHOUT TIME ZONE)
+  - `deleted_date` (TIMESTAMP WITHOUT TIME ZONE) - For soft deletion
+  - `status` (TEXT) - Capability status
+  - `responsibility_product_id` (INTEGER) - Foreign key to `products.product.id`
+- Creates foreign key constraint: `responsibility_product_id` → `products.product.id`
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` check
+
+---
+
+### V0007__create_capability_tech_capability_relations_table.sql
+
+**Purpose**: Creates the junction table for many-to-many relationships between business and technical capabilities.
+
+**Actions**:
+- Creates `capability.tech_capability_relations` table with columns:
+  - `id` (SERIAL PRIMARY KEY)
+  - `parent_id` (INTEGER NOT NULL) - Foreign key to `capability.business_capability.id`
+  - `child_id` (INTEGER NOT NULL) - Foreign key to `capability.tech_capability.id`
+- Creates foreign key constraints:
+  - `parent_id` → `capability.business_capability.id`
+  - `child_id` → `capability.tech_capability.id`
+
+**Purpose**: Establishes many-to-many relationships allowing:
+- One business capability to be supported by multiple technical capabilities
+- One technical capability to support multiple business capabilities
+
+**Idempotent**: Yes - uses `IF NOT EXISTS` check
+
+---
+
+### V0008__add_column_to_product_table.sql
+
+**Purpose**: Adds Structurizr integration columns to the `product` table.
+
+**Actions**:
+- Adds `structurizr_api_key` (TEXT) column to `products.product`
+- Adds `structurizr_api_secret` (TEXT) column to `products.product`
+- Adds `structurizr_url` (TEXT) column to `products.product`
+
+**Purpose**: Enables integration with Structurizr for architecture diagramming and documentation.
+
+**Idempotent**: Yes - uses `ALTER TABLE ADD COLUMN` which is safe to run multiple times (PostgreSQL will skip if column exists)
+
+---
+
+### V0009__insert_initial_capabilities.sql
+
+**Purpose**: Inserts initial business capability data for the system.
+
+**Actions**:
+- Checks if any business capabilities already exist
+- If table is empty, inserts a hierarchical set of business capabilities including:
+  - Group capabilities (GRP.000, GRP.001, GRP.002)
+  - Domain capabilities (DMN.001 through DMN.007) with `is_domain = true`
+  - Business capabilities (BC.00001 through BC.00039) with `is_domain = false`
+  - Establishes parent-child relationships through `parent_id` references
+  - Sets initial status to "Proposed" for all capabilities
+  - Sets creation timestamps
+
+**Data Structure**: Creates a multi-level hierarchy:
+- Root: "Каталог Возможностей (Capability Catalog)" (GRP.000)
+- Level 1: Groups (e.g., "Нефтегазовая Разведка", "Производство и эксплуатация")
+- Level 2: Domains (e.g., "Оценка возможностей", "Геологический и географический анализ")
+- Level 3: Business Capabilities (e.g., "Геологическая и геофизическая идентификация")
+
+**Idempotent**: Yes - checks if table is empty before insertion
+
+---
+
+### V0010__insert_test_product.sql
+
+**Purpose**: Inserts a test product for development and testing purposes.
+
+**Actions**:
+- Inserts a test product into `products.product` table:
+  - Name: "Тестовое приложение" (Test Application)
+  - Alias: "test"
+  - Description: "Тестовое приложение компании" (Company test application)
+  - Structurizr API Key: `10476ad7-2675-49e1-861d-6bf2d7964164`
+  - Structurizr API Secret: `8a02614c-17db-4f7f-bfac-c24ad069ca2q`
+  - Created Date: Current timestamp (NOW())
+
+**Purpose**: Provides a default product for testing technical capability assignments and Structurizr integration.
+
+**Note**: This migration inserts data unconditionally. If a product with the same name already exists, it may cause a unique constraint violation. Consider adding existence checks for production use.
+
+**Idempotent**: No - will fail if product with same name exists
 
 ## Query Examples
 

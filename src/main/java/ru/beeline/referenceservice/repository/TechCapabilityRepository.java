@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2024 PJSC VimpelCom
+ */
+package ru.beeline.referenceservice.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import ru.beeline.referenceservice.domain.TechCapability;
+
+import java.util.Optional;
+
+@Repository
+public interface TechCapabilityRepository extends JpaRepository<TechCapability, Integer> {
+
+    @Query("SELECT c FROM TechCapability c WHERE c.deletedDate is NULL ORDER BY c.name")
+    Page<TechCapability> findCapabilities(Pageable pageable);
+
+    Optional<TechCapability> findByCode(String code);
+}

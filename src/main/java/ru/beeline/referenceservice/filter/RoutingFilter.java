@@ -49,7 +49,8 @@ public class RoutingFilter extends OncePerRequestFilter {
         if (routes.containsKey(firstPart)) {
             try {
                 String host = routes.get(firstPart);
-                String targetUrl = buildTargetUrl(path, firstPart, host);
+                String queryString = wrappedRequest.getQueryString();
+                String targetUrl = buildTargetUrl(path, firstPart, host, queryString);
                 HttpHeaders headers = createHeaders(wrappedRequest);
                 ResponseEntity<String> responseEntity = processProxyRequest(targetUrl, wrappedRequest, headers);
                 copyResponse(responseEntity, response);
@@ -88,10 +89,14 @@ public class RoutingFilter extends OncePerRequestFilter {
         return headers;
     }
 
-    private String buildTargetUrl(String path, String firstPart, String host) {
+    private String buildTargetUrl(String path, String firstPart, String host, String queryString) {
         int prefixEndIndex = path.indexOf(firstPart) + firstPart.length();
         String newPath = path.length() > prefixEndIndex ? path.substring(prefixEndIndex) : "/";
-        return host + newPath;
+        String targetUrl = host + newPath;
+        if (queryString != null && !queryString.isEmpty()) {
+            targetUrl += "?" + queryString;
+        }
+        return targetUrl;
     }
 
     private void copyResponse(ResponseEntity<String> responseEntity, HttpServletResponse response) throws IOException {

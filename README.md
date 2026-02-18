@@ -256,6 +256,54 @@ Main application settings are in `application.properties`. For Docker environmen
 - `APP_ROUTES_ARCHITECTURE_CENTER` - Architecture center URL
 - `APP_ROUTES_STRUCTURIZR_BACKEND` - Structurizr backend URL
 
+## Routing / Proxy (app.routes.*)
+
+This service contains a simple **reverse-proxy routing** mechanism implemented as a servlet filter (`RoutingFilter`).
+It allows you to forward requests to other services based on the **first path segment** of the URL.
+
+### How it works
+
+- Routes are defined in application configuration (`app.routes.*`)
+- Each route name is mapped to a **target host** (base URL)
+- When a request comes in, the path is split by `/`
+- The **first segment** of the path (e.g. `users` in `/users/profile`) is treated as a *route prefix*
+- If this prefix exists in `app.routes`, the request is **proxied** to the mapped host:
+    - Target URL: `{ROUTE_HOST}/{original path without the first segment}`
+    - HTTP method, request parameters, headers and body are preserved
+- Authentication and authorization are checked **before** routing (according to the current `AuthFilter` logic)
+- The response from the target service (status, headers, body) is returned to the client **unchanged**
+- If the path does **not** start with any configured route prefix, the service processes the request with its own controllers as usual (and returns 404 if there is no handler)
+
+### Configuration
+
+Define routes in `application.properties`:
+
+```properties
+app.routes.users=http://user-service:8080
+app.routes.products=http://product-service:8081
+```
+
+Or via environment variables (Spring Boot relaxed binding):
+
+```bash
+APP_ROUTES_USERS=http://user-service:8080
+APP_ROUTES_PRODUCTS=http://product-service:8081
+```
+
+### Examples
+
+- Request `GET /users/profile` will be proxied to `http://user-service:8080/profile`
+- Request `POST /products/create` will be proxied to `http://product-service:8081/create`
+- Request `GET {opensource-reference-service-host}/dashboard/api/v1/capability`:
+    - First path segment is `dashboard`
+    - If there is a route `app.routes.dashboard=https://beeline.com`, the request will be proxied to `https://beeline.com/api/v1/capability`
+    - If there is **no** such route, the service will try to handle `GET /dashboard/api/v1/capability` itself; if no handler exists, it will return 404
+
+### Authentication
+
+The authentication filter runs **before** routing.
+This means proxied requests still require the same authentication headers as any other protected endpoint, and the proxy will forward these headers to the target service.
+
 ## Docker
 
 ### Building Image

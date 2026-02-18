@@ -46,7 +46,7 @@ public class ProductService {
                     .createdDate(LocalDateTime.now())
                     .build();
         } else {
-            if (!product.getName().equals(productPutDto.getName()) &&
+            if (!product.getName().equals(productPutDto.getName()) ||
                     !product.getDescription().equals(productPutDto.getDescription())) {
                 product.setName(productPutDto.getName());
                 product.setDescription(productPutDto.getDescription());

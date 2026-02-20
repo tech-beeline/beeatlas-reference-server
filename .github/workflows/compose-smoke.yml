@@ -29,9 +29,18 @@ jobs:
           docker compose version || (echo "Docker Compose not found" && sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose)
           # Run compose
           docker compose -f docker-compose.yml up --wait --wait-timeout 120 -d
+          mkdir -p logs
+          docker compose logs > logs/compose.log.txt
           # Cleanup
           sleep 5
           docker compose -f docker-compose.yml down -v
+      
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compose-logs
+          path: logs/
 
       # # optional
       # - name: Run Trivy vulnerability scanner

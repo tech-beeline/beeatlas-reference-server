@@ -25,7 +25,7 @@ services:
       dockerfile: Dockerfile
     container_name: reference-service-app
     depends_on:
-      postgres:
+      reference-service-postgres:
         condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://${REFERENCE_POSTGRES_HOST:-reference-service-postgres}:5432/${REFERENCE_POSTGRES_DB:-reference_service}

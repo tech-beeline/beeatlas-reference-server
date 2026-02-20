@@ -1,60 +1,55 @@
 
 services:
-  postgres:
+  reference-service-postgres:
     image: postgres:15-alpine
     container_name: reference-service-postgres
     environment:
-      POSTGRES_DB: reference_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${REFERENCE_POSTGRES_DB:-reference_service}
+      POSTGRES_USER: ${REFERENCE_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${REFERENCE_POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "${REFERENCE_SERVICE_POSTGRES_NODEPORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - reference-service-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${REFERENCE_POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - reference-service-network
+      - beeatlas-network
 
-  app:
+  reference-service:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: reference-service-app
     depends_on:
-      postgres:
+      reference-service-postgres:
         condition: service_healthy
     environment:
-      # Настройки базы данных
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reference_service
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      # Настройки приложения
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${REFERENCE_POSTGRES_HOST:-reference-service-postgres}:5432/${REFERENCE_POSTGRES_DB:-reference_service}
+      SPRING_DATASOURCE_USERNAME: ${REFERENCE_POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${REFERENCE_POSTGRES_PASSWORD:-postgres}
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
       SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: users
       SPRING_FLYWAY_DEFAULT_SCHEMA: users
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
       SPRING_FLYWAY_CLEAN_DISABLED: "true"
-      # Настройки маршрутизации (можно переопределить при необходимости)
-      # Значения по умолчанию из application.properties используются, если не переопределены
-      # Для переопределения используйте формат: APP_ROUTES_DASHBOARD, APP_ROUTES_ARCHITECTURE_CENTER и т.д.
-      # Примечание: Spring Boot автоматически использует значения из application.properties,
-      # переменные окружения нужны только если требуется переопределить значения по умолчанию
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
     ports:
-      - "8080:8080"
-      - "8090:8090"
-      - "10260:10260"
+      - "${REFERENCE_SERVICE_PORT:-8081}:8080"
     networks:
-      - reference-service-network
+      - beeatlas-network
     restart: unless-stopped
 
 networks:
-  reference-service-network:
+  beeatlas-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-
+  reference-service-postgres:

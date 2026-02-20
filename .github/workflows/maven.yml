@@ -32,6 +32,14 @@ jobs:
     
     - name: Build with Maven and run tests
       run: mvn clean verify --file pom.xml
+    
+    - name: Publish Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: target/surefire-reports/
+
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
